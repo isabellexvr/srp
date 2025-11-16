@@ -1,0 +1,145 @@
+## BANCO DE DADOS - SISTEMA PRESTAÇÃO DE CONTAS SEDUC-AL
+
+## MIGRATIONS NECESSÁRIAS:
+
+1. schools (Escolas)
+   - name (string)
+   - code (string, unique) - código da escola
+   - address (text)
+   - phone (string)
+   - email (string)
+   - director_name (string)
+   - created_at (timestamp)
+   - updated_at (timestamp)
+
+2. users (Usuários)
+   - name (string)
+   - email (string, unique)
+   - password (string)
+   - role (string) - 'admin', 'school_admin', 'fiscal_council'
+   - school_id (foreign key - nullable para admin)
+   - created_at (timestamp)
+   - updated_at (timestamp)
+
+3. accountability_processes (Processos de Prestação de Contas)
+   - school_id (foreign key)
+   - year (integer)
+   - semester (integer) - 1 ou 2
+   - process_number (string) - número do processo SEI
+   - status (string) - 'draft', 'under_review', 'approved', 'rejected'
+   - president_name (string) - presidente do conselho
+   - treasurer_name (string) - tesoureiro do conselho
+   - submission_date (date, nullable)
+   - created_at (timestamp)
+   - updated_at (timestamp)
+
+4. checklist_items (Itens do Checklist)
+   - accountability_process_id (foreign key)
+   - item_number (string) - ex: '1', '5.1', '7.1'
+   - description (text)
+   - status (string) - 'pending', 'completed', 'not_applicable'
+   - sei_number (string, nullable)
+   - notes (text, nullable)
+   - created_at (timestamp)
+   - updated_at (timestamp)
+
+5. purchases (Compras)
+   - accountability_process_id (foreign key)
+   - purchase_number (string) - ex: 'Compra 01', 'Compra 02'
+   - description (text)
+   - supplier_name (string)
+   - supplier_cnpj (string)
+   - value (decimal)
+   - purchase_date (date)
+   - created_at (timestamp)
+   - updated_at (timestamp)
+
+6. purchase_documents (Documentos das Compras)
+   - purchase_id (foreign key)
+   - document_type (string) - tipos específicos:
+     - 'budget_1', 'budget_2', 'budget_3'
+     - 'supplier_cnpj'
+     - 'result_minutes'
+     - 'price_consolidation'
+     - 'purchase_order'
+     - 'contract'
+     - 'municipal_tax_certificate'
+     - 'state_tax_certificate'
+     - 'federal_tax_certificate'
+     - 'fgts_certificate'
+     - 'labor_certificate'
+     - 'invoice'
+     - 'receipt'
+     - 'payment_proof'
+   - file_path (string)
+   - file_name (string)
+   - uploaded_by (foreign key - users)
+   - authenticity_verified (boolean)
+   - verification_date (date, nullable)
+   - created_at (timestamp)
+   - updated_at (timestamp)
+
+7. general_documents (Documentos Gerais do Processo)
+   - accountability_process_id (foreign key)
+   - document_type (string) - tipos:
+     - 'opening_memorandum'
+     - 'school_council_cnpj'
+     - 'election_minutes'
+     - 'application_plan'
+     - 'internet_contract'
+     - 'deposit_proof'
+     - 'bank_statement_current'
+     - 'bank_statement_investment'
+     - 'fiscal_council_opinion'
+     - 'revenue_expense_statement'
+     - 'consolidated_statement'
+     - 'acquired_goods_list'
+     - 'donation_term'
+     - 'bank_reconciliation'
+     - 'action_monitoring_form'
+   - file_path (string)
+   - file_name (string)
+   - uploaded_by (foreign key - users)
+   - created_at (timestamp)
+   - updated_at (timestamp)
+
+8. validations (Validações/Assinaturas)
+   - document_id (foreign key - morphed)
+   - document_type (string) - 'purchase_document' ou 'general_document'
+   - validator_id (foreign key - users)
+   - validator_role (string)
+   - validated_at (timestamp)
+   - digital_signature (text, nullable)
+   - created_at (timestamp)
+   - updated_at (timestamp)
+
+## RELACIONAMENTOS PRINCIPAIS:
+
+School -> hasMany -> AccountabilityProcess
+AccountabilityProcess -> belongsTo -> School
+AccountabilityProcess -> hasMany -> ChecklistItem
+AccountabilityProcess -> hasMany -> Purchase
+AccountabilityProcess -> hasMany -> GeneralDocument
+Purchase -> belongsTo -> AccountabilityProcess
+Purchase -> hasMany -> PurchaseDocument
+User -> belongsTo -> School (nullable)
+User -> hasMany -> UploadedDocuments
+
+## ÍTENS FIXOS DO CHECKLIST (para seed):
+
+1. Memorando de abertura do processo de prestação de contas
+2. Cartão do CNPJ do Conselho Escolar
+3. Ata de Eleição e Posse do Conselho Escolar
+4. Plano de aplicação dos recursos
+5.1 a 5.30 - Documentos de Compras (criados dinamicamente)
+7.1 - DOC 1 - CONTRATO DE INTERNET
+7.2 - DOC 2 - COMPROVANTE DE DEPÓSITO
+8.1 - Extratos da Conta Corrente
+8.2 - Extratos do Fundo de Investimento
+9 - Parecer do Conselho Fiscal
+10 - Demonstrativo de execução da receita e da despesa
+11 - Demonstrativo consolidado
+12 - Relação de Bens Adquiridos
+13 - Termo de Doação
+14 - Conciliação Bancária
+15 - Formulário de Acompanhamento das Ações
