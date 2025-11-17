@@ -302,7 +302,7 @@ const Checklist = () => {
     const handleSave = async () => {
         setLoading(true);
         try {
-            await router.post(
+            router.put(
                 `/processos/${process.id}/checklist/update`,
                 formData,
                 {
