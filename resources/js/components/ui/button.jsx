@@ -1,5 +1,6 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
+import { Slot } from "@radix-ui/react-slot";
 
 const buttonVariants = ({ variant, size, className }) => {
     const baseStyles =
@@ -43,8 +44,7 @@ const Button = React.forwardRef(
         },
         ref
     ) => {
-        const Comp = asChild ? "span" : "button";
-
+        const Comp = asChild ? Slot : "button";
         return (
             <Comp
                 className={buttonVariants({ variant, size, className })}

@@ -22,6 +22,7 @@ import { ArrowLeft, Upload, Save, Send, Plus, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import Layout from "@/Layouts/Layout";
+import FileUpload from "../components/FileUpload";
 
 // Helper function for status badge
 const getStatusBadge = (status) => {
@@ -142,20 +143,14 @@ const ChecklistItem = ({
                         />
                     </div>
 
-                    <div>
-                        <Label className="text-sm font-medium text-gray-700 mb-2 block">
-                            Arquivo do Documento
-                        </Label>
-                        <Button variant="outline" size="sm" className="gap-2">
-                            <Upload className="h-4 w-4" />
-                            Upload Arquivo
-                        </Button>
-                        {item.document_path && (
-                            <p className="text-xs text-green-600 mt-1">
-                                Arquivo já enviado
-                            </p>
-                        )}
-                    </div>
+                    <FileUpload
+                        label="Arquivo do Documento"
+                        onUpload={(file) => {
+                            /* TODO: implement upload logic */
+                        }}
+                        uploaded={!!item.document_path}
+                        disabled={false}
+                    />
                 </div>
             </div>
         </div>
@@ -268,7 +263,9 @@ const Checklist = () => {
 
     // Calcular progresso baseado nos itens concluídos
     useEffect(() => {
-        const completed = checklistItems.filter(item => item.status === 'completed').length;
+        const completed = checklistItems.filter(
+            (item) => item.status === "completed"
+        ).length;
         const total = checklistItems.length;
         setProgress(total > 0 ? Math.round((completed / total) * 100) : 0);
     }, [checklistItems]);
@@ -419,7 +416,8 @@ const Checklist = () => {
                             Checklist de Documentos
                         </h1>
                         <p className="text-gray-600 mt-1">
-                            Processo: <strong>{process.process_number}</strong> - {process.school.name}
+                            Processo: <strong>{process.process_number}</strong>{" "}
+                            - {process.school.name}
                         </p>
                     </div>
                 </div>
@@ -433,15 +431,18 @@ const Checklist = () => {
                                     Progresso Geral
                                 </CardTitle>
                                 <CardDescription className="text-gray-600">
-                                    Complete todos os itens obrigatórios do checklist
+                                    Complete todos os itens obrigatórios do
+                                    checklist
                                 </CardDescription>
                             </div>
-                            <Badge className={cn(
-                                "text-sm font-semibold",
-                                progress === 100
-                                    ? "bg-green-100 text-green-800 border-green-300"
-                                    : "bg-blue-100 text-blue-800 border-blue-300"
-                            )}>
+                            <Badge
+                                className={cn(
+                                    "text-sm font-semibold",
+                                    progress === 100
+                                        ? "bg-green-100 text-green-800 border-green-300"
+                                        : "bg-blue-100 text-blue-800 border-blue-300"
+                                )}
+                            >
                                 {progress}% Completo
                             </Badge>
                         </div>
@@ -450,7 +451,12 @@ const Checklist = () => {
                         <Progress value={progress} className="mb-2" />
                         <div className="flex justify-between text-sm text-gray-600">
                             <span>
-                                {checklistItems.filter((item) => item.status === "completed").length} de {checklistItems.length} itens concluídos
+                                {
+                                    checklistItems.filter(
+                                        (item) => item.status === "completed"
+                                    ).length
+                                }{" "}
+                                de {checklistItems.length} itens concluídos
                             </span>
                             <span>{purchases.length} compras cadastradas</span>
                         </div>
@@ -461,7 +467,8 @@ const Checklist = () => {
                 <Accordion>
                     {Object.entries(sections).map(([sectionKey, section]) => {
                         const isOpen = openSections.includes(sectionKey);
-                        const hasItems = section.items && section.items.length > 0;
+                        const hasItems =
+                            section.items && section.items.length > 0;
 
                         return (
                             <AccordionItem key={sectionKey}>
@@ -474,21 +481,35 @@ const Checklist = () => {
                                             <CardTitle className="text-lg font-semibold text-gray-900">
                                                 {section.title}
                                             </CardTitle>
-                                            {!hasItems && sectionKey !== "compras" && (
-                                                <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300">
-                                                    Vazio
-                                                </Badge>
-                                            )}
+                                            {!hasItems &&
+                                                sectionKey !== "compras" && (
+                                                    <Badge
+                                                        variant="outline"
+                                                        className="bg-yellow-50 text-yellow-700 border-yellow-300"
+                                                    >
+                                                        Vazio
+                                                    </Badge>
+                                                )}
                                         </div>
                                         <div className="flex items-center gap-3">
                                             {hasItems && (
-                                                <Badge variant="outline" className="bg-gray-50 text-gray-700">
-                                                    {section.completed}/{section.items.length}
+                                                <Badge
+                                                    variant="outline"
+                                                    className="bg-gray-50 text-gray-700"
+                                                >
+                                                    {section.completed}/
+                                                    {section.items.length}
                                                 </Badge>
                                             )}
                                             {sectionKey === "compras" && (
-                                                <Link href={`/processos/${process.id}/compras`}>
-                                                    <Button size="sm" variant="outline" className="gap-1 h-8">
+                                                <Link
+                                                    href={`/processos/${process.id}/compras`}
+                                                >
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        className="gap-1 h-8"
+                                                    >
                                                         <Plus className="h-3 w-3" />
                                                         Gerenciar
                                                     </Button>
@@ -509,19 +530,27 @@ const Checklist = () => {
                                                         : "Nenhum item disponível"}
                                                 </p>
                                                 {sectionKey === "compras" && (
-                                                    <Link href={`/processos/${process.id}/compras`}>
+                                                    <Link
+                                                        href={`/processos/${process.id}/compras`}
+                                                    >
                                                         <Button className="gap-2 bg-blue-600 hover:bg-blue-700">
                                                             <Plus className="h-4 w-4" />
-                                                            Cadastrar Primeira Compra
+                                                            Cadastrar Primeira
+                                                            Compra
                                                         </Button>
                                                     </Link>
                                                 )}
                                             </div>
                                         ) : sectionKey === "compras" ? (
                                             <div className="space-y-4">
-                                                {section.items.map((purchase) => (
-                                                    <PurchaseDocuments key={purchase.id} purchase={purchase} />
-                                                ))}
+                                                {section.items.map(
+                                                    (purchase) => (
+                                                        <PurchaseDocuments
+                                                            key={purchase.id}
+                                                            purchase={purchase}
+                                                        />
+                                                    )
+                                                )}
                                             </div>
                                         ) : (
                                             <div className="space-y-4">
@@ -529,9 +558,15 @@ const Checklist = () => {
                                                     <ChecklistItem
                                                         key={item.id}
                                                         item={item}
-                                                        onStatusChange={handleStatusChange}
-                                                        onSeiNumberChange={handleSeiNumberChange}
-                                                        formData={formData[item.id]}
+                                                        onStatusChange={
+                                                            handleStatusChange
+                                                        }
+                                                        onSeiNumberChange={
+                                                            handleSeiNumberChange
+                                                        }
+                                                        formData={
+                                                            formData[item.id]
+                                                        }
                                                     />
                                                 ))}
                                             </div>
