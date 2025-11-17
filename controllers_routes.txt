@@ -1,0 +1,412 @@
+## LARAVEL BACKEND - CONTROLLERS E ROTAS PARA SISTEMA PRESTAÇÃO DE CONTAS
+
+## CONTROLLERS NECESSÁRIOS:
+
+1. AuthController (Login/Logout)
+2. DashboardController (Dashboard estatísticas)
+3. ProcessController (CRUD processos)
+4. ChecklistController (Gestão do checklist)
+5. PurchaseController (Gestão de compras)
+6. DocumentController (Upload/download documentos)
+7. SchoolController (Gestão de escolas)
+
+## MODELOS PRINCIPAIS (já definidos anteriormente):
+- User, School, AccountabilityProcess, ChecklistItem, Purchase, PurchaseDocument, GeneralDocument
+
+## 1. ROTAS API (routes/api.php)
+
+<?php
+
+use App\Http\Controllers\Api\{
+    AuthController,
+    DashboardController,
+    ProcessController,
+    ChecklistController,
+    PurchaseController,
+    DocumentController,
+    SchoolController
+};
+
+// Autenticação
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
+
+// Dashboard
+Route::get('/dashboard/stats', [DashboardController::class, 'stats'])->middleware('auth:sanctum');
+Route::get('/dashboard/recent-processes', [DashboardController::class, 'recentProcesses'])->middleware('auth:sanctum');
+
+// Processos
+Route::apiResource('processes', ProcessController::class)->middleware('auth:sanctum');
+Route::get('/schools/{school}/processes', [ProcessController::class, 'getBySchool'])->middleware('auth:sanctum');
+
+// Checklist
+Route::get('/processes/{process}/checklist', [ChecklistController::class, 'show'])->middleware('auth:sanctum');
+Route::put('/processes/{process}/checklist/{item}', [ChecklistController::class, 'updateItem'])->middleware('auth:sanctum');
+Route::post('/processes/{process}/checklist/bulk-update', [ChecklistController::class, 'bulkUpdate'])->middleware('auth:sanctum');
+
+// Compras
+Route::get('/processes/{process}/purchases', [PurchaseController::class, 'index'])->middleware('auth:sanctum');
+Route::post('/processes/{process}/purchases', [PurchaseController::class, 'store'])->middleware('auth:sanctum');
+Route::put('/processes/{process}/purchases/{purchase}', [PurchaseController::class, 'update'])->middleware('auth:sanctum');
+Route::delete('/processes/{process}/purchases/{purchase}', [PurchaseController::class, 'destroy'])->middleware('auth:sanctum');
+Route::post('/processes/{process}/purchases/bulk-upload', [PurchaseController::class, 'bulkUpload'])->middleware('auth:sanctum');
+
+// Documentos
+Route::post('/processes/{process}/documents/upload', [DocumentController::class, 'uploadGeneralDocument'])->middleware('auth:sanctum');
+Route::post('/purchases/{purchase}/documents/upload', [DocumentController::class, 'uploadPurchaseDocument'])->middleware('auth:sanctum');
+Route::delete('/documents/{document}', [DocumentController::class, 'destroy'])->middleware('auth:sanctum');
+Route::get('/documents/{document}/download', [DocumentController::class, 'download'])->middleware('auth:sanctum');
+
+// Escolas
+Route::get('/schools', [SchoolController::class, 'index'])->middleware('auth:sanctum');
+
+## 2. ROTAS WEB (routes/web.php) - PARA INERTIA
+
+<?php
+
+use App\Http\Controllers\{
+    DashboardController,
+    ProcessController,
+    ChecklistController,
+    PurchaseController
+};
+
+Route::middleware('auth:sanctum')->group(function () {
+    // Dashboard
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    
+    // Processos
+    Route::get('/processos', [ProcessController::class, 'index'])->name('processes.index');
+    Route::get('/processos/novo', [ProcessController::class, 'create'])->name('processes.create');
+    Route::get('/processos/{process}', [ProcessController::class, 'show'])->name('processes.show');
+    Route::get('/processos/{process}/editar', [ProcessController::class, 'edit'])->name('processes.edit');
+    Route::get('/processos/{process}/checklist', [ChecklistController::class, 'show'])->name('checklist.show');
+    
+    // Compras
+    Route::get('/processos/{process}/compras', [PurchaseController::class, 'index'])->name('purchases.index');
+});
+
+## 3. CONTROLLERS IMPLEMENTAÇÃO
+
+### 3.1 DashboardController
+
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use App\Models\AccountabilityProcess;
+use App\Models\School;
+use Illuminate\Support\Facades\Auth;
+
+class DashboardController extends Controller
+{
+    public function index()
+    {
+        return Inertia::render('Dashboard');
+    }
+
+    public function stats(Request $request)
+    {
+        $user = Auth::user();
+        
+        $query = AccountabilityProcess::query();
+        
+        if ($user->role === 'school_admin') {
+            $query->where('school_id', $user->school_id);
+        }
+        
+        $total = $query->count();
+        $emAndamento = $query->whereIn('status', ['rascunho', 'em_analise'])->count();
+        $pendentes = $query->where('status', 'rascunho')->count();
+        $aprovados = $query->where('status', 'aprovado')->count();
+        
+        return response()->json([
+            'total' => $total,
+            'em_andamento' => $emAndamento,
+            'pendentes' => $pendentes,
+            'aprovados' => $aprovados,
+        ]);
+    }
+
+    public function recentProcesses(Request $request)
+    {
+        $user = Auth::user();
+        
+        $processes = AccountabilityProcess::with('school')
+            ->when($user->role === 'school_admin', function ($query) use ($user) {
+                return $query->where('school_id', $user->school_id);
+            })
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get()
+            ->map(function ($process) {
+                return [
+                    'id' => $process->process_number,
+                    'school' => $process->school->name,
+                    'semester' => $process->semester . 'º/' . $process->year,
+                    'status' => $process->status,
+                    'progress' => $process->calculateProgress(), // Método no model
+                ];
+            });
+            
+        return response()->json($processes);
+    }
+}
+
+### 3.2 ProcessController
+
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use App\Models\AccountabilityProcess;
+use App\Models\School;
+use App\Models\ChecklistItem;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
+
+class ProcessController extends Controller
+{
+    public function index(Request $request)
+    {
+        return Inertia::render('ProcessList');
+    }
+
+    public function create()
+    {
+        $schools = School::all();
+        return Inertia::render('ProcessForm', [
+            'schools' => $schools
+        ]);
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'school_id' => 'required|exists:schools,id',
+            'year' => 'required|integer|min:2020|max:2030',
+            'semester' => 'required|in:1,2',
+            'president_name' => 'required|string|max:255',
+            'treasurer_name' => 'required|string|max:255',
+        ]);
+
+        $process = AccountabilityProcess::create([
+            'school_id' => $request->school_id,
+            'year' => $request->year,
+            'semester' => $request->semester,
+            'president_name' => $request->president_name,
+            'treasurer_name' => $request->treasurer_name,
+            'process_number' => 'E:' . Str::random(8) . '/' . $request->year,
+            'status' => 'rascunho',
+            'created_by' => Auth::id(),
+        ]);
+
+        // Criar itens do checklist padrão
+        $this->createDefaultChecklistItems($process->id);
+
+        return response()->json([
+            'message' => 'Processo criado com sucesso',
+            'process' => $process,
+            'redirect_url' => route('checklist.show', $process->id)
+        ]);
+    }
+
+    public function show($id)
+    {
+        $process = AccountabilityProcess::with(['school', 'checklistItems', 'purchases'])
+            ->findOrFail($id);
+            
+        return Inertia::render('ProcessShow', [
+            'process' => $process
+        ]);
+    }
+
+    public function edit($id)
+    {
+        $process = AccountabilityProcess::findOrFail($id);
+        $schools = School::all();
+        
+        return Inertia::render('ProcessForm', [
+            'process' => $process,
+            'schools' => $schools,
+            'isEdit' => true
+        ]);
+    }
+
+    public function update(Request $request, $id)
+    {
+        $process = AccountabilityProcess::findOrFail($id);
+        
+        $request->validate([
+            'school_id' => 'required|exists:schools,id',
+            'year' => 'required|integer|min:2020|max:2030',
+            'semester' => 'required|in:1,2',
+            'president_name' => 'required|string|max:255',
+            'treasurer_name' => 'required|string|max:255',
+        ]);
+
+        $process->update($request->all());
+
+        return response()->json([
+            'message' => 'Processo atualizado com sucesso',
+            'process' => $process
+        ]);
+    }
+
+    public function destroy($id)
+    {
+        $process = AccountabilityProcess::findOrFail($id);
+        
+        if ($process->status !== 'rascunho') {
+            return response()->json([
+                'message' => 'Apenas processos em rascunho podem ser excluídos'
+            ], 422);
+        }
+
+        $process->delete();
+
+        return response()->json([
+            'message' => 'Processo excluído com sucesso'
+        ]);
+    }
+
+    private function createDefaultChecklistItems($processId)
+    {
+        $defaultItems = [
+            ['item_number' => '1', 'description' => 'Memorando de abertura do processo de prestação de contas'],
+            ['item_number' => '2', 'description' => 'Cartão do CNPJ do Conselho Escolar'],
+            ['item_number' => '3', 'description' => 'Ata de Eleição e Posse do Conselho Escolar devidamente registrada em Cartório'],
+            ['item_number' => '4', 'description' => 'Plano de aplicação dos recursos'],
+            // ... adicionar todos os itens do checklist oficial
+        ];
+
+        foreach ($defaultItems as $item) {
+            ChecklistItem::create([
+                'accountability_process_id' => $processId,
+                'item_number' => $item['item_number'],
+                'description' => $item['description'],
+                'status' => 'pending'
+            ]);
+        }
+    }
+}
+
+### 3.3 AuthController
+
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use App\Models\User;
+
+class AuthController extends Controller
+{
+    public function login(Request $request)
+    {
+        $credentials = $request->validate([
+            'email' => 'required|email',
+            'password' => 'required'
+        ]);
+
+        if (Auth::attempt($credentials)) {
+            $user = User::where('email', $request->email)->first();
+            $token = $user->createToken('auth-token')->plainTextToken;
+
+            return response()->json([
+                'user' => $user,
+                'token' => $token
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'Credenciais inválidas'
+        ], 401);
+    }
+
+    public function logout(Request $request)
+    {
+        $request->user()->currentAccessToken()->delete();
+        
+        return response()->json([
+            'message' => 'Logout realizado com sucesso'
+        ]);
+    }
+}
+
+### 3.4 SchoolController
+
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use App\Models\School;
+
+class SchoolController extends Controller
+{
+    public function index()
+    {
+        $schools = School::all();
+        
+        return response()->json($schools);
+    }
+}
+
+## 4. CONFIGURAÇÕES ADICIONAIS
+
+### 4.1 Model AccountabilityProcess - Adicionar método calculateProgress()
+
+public function calculateProgress()
+{
+    $totalItems = $this->checklistItems->count();
+    if ($totalItems === 0) return 0;
+    
+    $completedItems = $this->checklistItems->where('status', 'completed')->count();
+    
+    return round(($completedItems / $totalItems) * 100);
+}
+
+### 4.2 Configurar Sanctum para API
+
+// Em config/cors.php - permitir credenciais
+'paths' => ['api/*', 'sanctum/csrf-cookie'],
+'supports_credentials' => true,
+
+### 4.3 Middleware para Inertia - Compartilhar usuário
+
+// Em app/Http/Middleware/HandleInertiaRequests.php
+public function share(Request $request)
+{
+    return array_merge(parent::share($request), [
+        'auth' => [
+            'user' => $request->user(),
+        ],
+    ]);
+}
+
+## 5. COMANDOS PARA EXECUTAR
+
+php artisan migrate
+php artisan db:seed --class=SchoolsSeeder
+php artisan storage:link
+
+## 6. ESTRUTURA FRONTEND COMPATÍVEL
+
+As rotas do Laravel estão alinhadas com as páginas React que você já tem:
+- Dashboard → /dashboard
+- Lista Processos → /processos  
+- Novo Processo → /processos/novo
+- Checklist → /processos/{id}/checklist
+- Compras → /processos/{id}/compras
+
+Próximo passo: Implementar ChecklistController, PurchaseController e DocumentController!

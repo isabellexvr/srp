@@ -8,6 +8,16 @@ class AccountabilityProcess extends Model
 {
     use HasFactory;
 
+    public function calculateProgress()
+    {
+        $totalItems = $this->checklistItems->count();
+        if ($totalItems === 0)
+            return 0;
+        $completedItems = $this->checklistItems->where('status', 'completed')->count();
+        return round(($completedItems / $totalItems) * 100);
+    }
+    use HasFactory;
+
     protected $fillable = [
         'school_id',
         'year',
