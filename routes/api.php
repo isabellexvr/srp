@@ -24,17 +24,17 @@ Route::middleware(['auth:sanctum'])->group(function () {
 Route::apiResource('processes', ProcessController::class)->middleware('auth:sanctum');
 Route::get('/schools/{school}/processes', [ProcessController::class, 'getBySchool'])->middleware('auth:sanctum');
 
-// Checklist
-Route::get('/processes/{process}/checklist', [ChecklistController::class, 'show'])->middleware('auth:sanctum');
-Route::put('/processes/{process}/checklist/{item}', [ChecklistController::class, 'updateItem'])->middleware('auth:sanctum');
-Route::post('/processes/{process}/checklist/bulk-update', [ChecklistController::class, 'bulkUpdate'])->middleware('auth:sanctum');
 
-// Compras
-Route::get('/processes/{process}/purchases', [PurchaseController::class, 'index'])->middleware('auth:sanctum');
-Route::post('/processes/{process}/purchases', [PurchaseController::class, 'store'])->middleware('auth:sanctum');
-Route::put('/processes/{process}/purchases/{purchase}', [PurchaseController::class, 'update'])->middleware('auth:sanctum');
-Route::delete('/processes/{process}/purchases/{purchase}', [PurchaseController::class, 'destroy'])->middleware('auth:sanctum');
-Route::post('/processes/{process}/purchases/bulk-upload', [PurchaseController::class, 'bulkUpload'])->middleware('auth:sanctum');
+Route::middleware(['auth'])->group(function () {
+    // Processos
+    Route::get('/processos', [ProcessController::class, 'index'])->name('processos.index');
+    Route::get('/processos/novo', [ProcessController::class, 'create'])->name('processos.create');
+    Route::post('/processos', [ProcessController::class, 'store'])->name('processos.store');
+    Route::post('/processos/store-and-checklist', [ProcessController::class, 'storeAndChecklist']);
+    Route::delete('/processos/{process}', [ProcessController::class, 'destroy'])->name('processos.destroy');
+});
+
+
 
 // Documentos
 Route::post('/processes/{process}/documents/upload', [DocumentController::class, 'uploadGeneralDocument'])->middleware('auth:sanctum');
