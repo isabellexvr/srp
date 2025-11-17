@@ -12,4 +12,12 @@ Route::get('/', function () {
     return Inertia::render('Login');
 });
 
+
+Route::get('/dashboard', function () {
+    return Inertia::render('Dashboard');
+});
+
 Route::get('/cnpj', [TestController::class, 'index'])->name('index');
+
+
+require_once __DIR__.'/api.php';

@@ -9,13 +9,16 @@ class ChecklistItemsSeeder extends Seeder
     public function run(): void
     {
         $items = [
-            ['accountability_process_id' => 1, 'item_number' => '1', 'description' => 'Memorando de abertura do processo de prestação de contas', 'status' => 'pending'],
-            ['accountability_process_id' => 1, 'item_number' => '2', 'description' => 'Cartão do CNPJ do Conselho Escolar', 'status' => 'pending'],
-            ['accountability_process_id' => 2, 'item_number' => '1', 'description' => 'Memorando de abertura do processo de prestação de contas', 'status' => 'completed'],
-            ['accountability_process_id' => 2, 'item_number' => '2', 'description' => 'Cartão do CNPJ do Conselho Escolar', 'status' => 'completed'],
+            ['item_number' => '1', 'description' => 'Memorando de abertura do processo de prestação de contas', 'status' => 'pending'],
+            ['item_number' => '2', 'description' => 'Cartão do CNPJ do Conselho Escolar', 'status' => 'pending'],
+            ['item_number' => '3', 'description' => 'Ata de Eleição e Posse do Conselho Escolar', 'status' => 'pending'],
+            ['item_number' => '4', 'description' => 'Plano de aplicação dos recursos', 'status' => 'pending'],
         ];
+        // Adiciona para accountability_process_id 1
         foreach ($items as $item) {
-            ChecklistItem::create($item);
+            ChecklistItem::create(array_merge($item, [
+                'accountability_process_id' => 1
+            ]));
         }
     }
 }

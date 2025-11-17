@@ -34,9 +34,11 @@ class ChecklistItemSeeder extends Seeder
             ['item_number' => '14', 'description' => 'Conciliação Bancária'],
             ['item_number' => '15', 'description' => 'Formulário de Acompanhamento das Ações'],
         ]);
+        // Get a valid accountability_process_id (first one)
+        $processId = \App\Models\AccountabilityProcess::query()->value('id');
         foreach ($items as $item) {
             ChecklistItem::create([
-                'accountability_process_id' => null, // Ajuste conforme necessário
+                'accountability_process_id' => $processId,
                 'item_number' => $item['item_number'],
                 'description' => $item['description'],
                 'status' => 'pending',

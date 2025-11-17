@@ -16,20 +16,15 @@ class AuthController extends Controller
         ]);
 
         if (Auth::attempt($credentials)) {
-            $user = User::where('email', $request->email)->first();
-            $token = $user->createToken('auth-token')->plainTextToken;
-
-            return response()->json([
-                'user' => $user,
-                'token' => $token
-            ]);
+            $request->session()->regenerate();
+            return redirect()->intended('/dashboard');
         }
 
-        return response()->json([
-            'message' => 'Credenciais inválidas'
-        ], 401);
+        return back()->withErrors([
+            'message' => 'Credenciais inválidas',
+            'email' => $request->email,
+        ]);
     }
-
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
