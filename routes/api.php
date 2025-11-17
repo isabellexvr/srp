@@ -12,9 +12,13 @@ use App\Http\Controllers\Api\SchoolController;
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 
-// Dashboard
-Route::get('/dashboard/stats', [DashboardController::class, 'stats'])->middleware('auth:sanctum');
-Route::get('/dashboard/recent-processes', [DashboardController::class, 'recentProcesses'])->middleware('auth:sanctum');
+
+Route::middleware(['auth:sanctum'])->group(function () {
+    // Dashboard
+    Route::get('/dashboard', [DashboardController::class, 'index']);
+    Route::get('/dashboard/stats', [DashboardController::class, 'stats']);
+    Route::get('/dashboard/recent-processes', [DashboardController::class, 'recentProcesses']);
+});
 
 // Processos
 Route::apiResource('processes', ProcessController::class)->middleware('auth:sanctum');
