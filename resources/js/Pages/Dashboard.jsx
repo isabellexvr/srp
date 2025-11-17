@@ -39,7 +39,7 @@ const Dashboard = () => {
         setError(null);
         // Get stats
         router.get(
-            "/api/dashboard/stats",
+            "/dashboard/stats",
             {},
             {
                 preserveState: true,
@@ -47,7 +47,7 @@ const Dashboard = () => {
                     setStats(page.props.stats || {});
                     // Get recent processes after stats
                     router.get(
-                        "/api/dashboard/recent-processes",
+                        "/dashboard/recent-processes",
                         {},
                         {
                             preserveState: true,

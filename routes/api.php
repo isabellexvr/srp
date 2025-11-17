@@ -9,7 +9,7 @@ use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\Api\SchoolController;
 
 // Autenticação
-Route::post('/login', [AuthController::class, 'login']);
+Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 
 
