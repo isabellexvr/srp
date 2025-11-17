@@ -23,9 +23,9 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/processos/{process}', [ProcessController::class, 'destroy'])->name('processos.destroy');
     
     // Checklist
+    Route::put('/progress-update/{process}', [ChecklistController::class, 'progressUpdate']);
     Route::get('/processos/{process}/checklist', [ChecklistController::class, 'show'])->name('checklist.show');
     Route::put('/processos/{process}/checklist/{item}', [ChecklistController::class, 'updateItem']);
-    Route::post('/processos/{process}/checklist/bulk-update', [ChecklistController::class, 'bulkUpdate']);
 });
 
 // API Routes (se ainda precisar)

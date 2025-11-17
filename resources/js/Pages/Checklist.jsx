@@ -301,9 +301,12 @@ const Checklist = () => {
 
     const handleSave = async () => {
         setLoading(true);
+        const url = `/progress-update/${process.id}`;
+        console.log("Saving to URL:", url);
         try {
+            console.log("holy shit")
             router.put(
-                `/processos/${process.id}/checklist/update`,
+                url,
                 formData,
                 {
                     preserveState: true,

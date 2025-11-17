@@ -30,16 +30,22 @@ class ChecklistController extends Controller
         return redirect()->back()->with('success', 'Item atualizado com sucesso');
     }
 
-    public function bulkUpdate(Request $request, $processId)
+    public function progressUpdate(Request $request, $processId)
     {
-        $items = $request->input('items', []);
-        foreach ($items as $itemData) {
-            $item = ChecklistItem::where('accountability_process_id', $processId)->find($itemData['id']);
+        $items = $request->all();
+        
+        foreach ($items as $itemId => $itemData) {
+            $item = ChecklistItem::where('accountability_process_id', $processId)
+                                ->find($itemId);
             if ($item) {
-                $item->update($itemData);
+                $item->update([
+                    'status' => $itemData['status'] ?? $item->status,
+                    'sei_number' => $itemData['sei_number'] ?? $item->sei_number,
+                    'notes' => $itemData['notes'] ?? $item->notes,
+                ]);
             }
         }
         
-        return redirect()->back()->with('success', 'Itens atualizados com sucesso');
+        return redirect()->back()->with('success', 'Checklist atualizado com sucesso');
     }
 }
