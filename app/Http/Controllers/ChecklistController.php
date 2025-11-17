@@ -1,19 +1,24 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\AccountabilityProcess;
 use App\Models\ChecklistItem;
+use App\Models\Purchase;
 use Inertia\Inertia;
 
 class ChecklistController extends Controller
 {
     public function show($processId)
     {
-        $process = AccountabilityProcess::with('checklistItems')->findOrFail($processId);
-        return Inertia::render('ChecklistShow', [
+        $process = AccountabilityProcess::with(['school', 'checklistItems'])->findOrFail($processId);
+        $purchases = Purchase::where('accountability_process_id', $processId)->get();
+        
+        return Inertia::render('Checklist', [
             'process' => $process,
-            'checklistItems' => $process->checklistItems
+            'checklistItems' => $process->checklistItems,
+            'purchases' => $purchases
         ]);
     }
 
@@ -21,7 +26,8 @@ class ChecklistController extends Controller
     {
         $item = ChecklistItem::where('accountability_process_id', $processId)->findOrFail($itemId);
         $item->update($request->only(['status', 'sei_number', 'notes']));
-        return response()->json(['message' => 'Item atualizado com sucesso', 'item' => $item]);
+        
+        return redirect()->back()->with('success', 'Item atualizado com sucesso');
     }
 
     public function bulkUpdate(Request $request, $processId)
@@ -33,6 +39,7 @@ class ChecklistController extends Controller
                 $item->update($itemData);
             }
         }
-        return response()->json(['message' => 'Itens atualizados com sucesso']);
+        
+        return redirect()->back()->with('success', 'Itens atualizados com sucesso');
     }
 }

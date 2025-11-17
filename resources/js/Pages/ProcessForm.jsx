@@ -49,9 +49,6 @@ const ProcessForm = () => {
     router.post(url, formData, {
       onSuccess: (page) => {
         setLoading(false);
-        if (action === 'checklist' && page.props.process) {
-          router.visit(`/processos/${page.props.process.id}/checklist`);
-        }
       },
       onError: (errors) => {
         setErrors(errors);
