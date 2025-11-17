@@ -183,3 +183,29 @@
 .text-info-foreground {
   color: hsl(var(--info-foreground));
 }
+
+/* Garantir que o layout ocupe toda a altura */
+html, body, #app {
+  height: 100%;
+}
+
+/* Scroll suave */
+main {
+  scroll-behavior: smooth;
+}
+
+/* Estados hover consistentes */
+button, a {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Sombras suaves para cards */
+.shadow-sm {
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+
+/* Gradientes suaves para hover */
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgb(0 0 0 / 0.1);
+}

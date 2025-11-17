@@ -17,6 +17,8 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useState, useEffect } from "react";
+import Layout from '@/Layouts/Layout'
+
 
 const Dashboard = () => {
     const { auth } = usePage().props || {};
@@ -155,6 +157,7 @@ const Dashboard = () => {
     }
 
     return (
+      <Layout>
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <div>
@@ -309,6 +312,7 @@ const Dashboard = () => {
                 </CardContent>
             </Card>
         </div>
+      </Layout>
     );
 };
 
