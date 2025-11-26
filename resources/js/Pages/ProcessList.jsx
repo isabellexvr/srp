@@ -102,6 +102,8 @@ const ProcessList = () => {
 
         return matchesSearch && matchesYear && matchesStatus;
     });
+    
+    console.log(filteredProcesses)
 
     return (
         <Layout>
@@ -116,7 +118,7 @@ const ProcessList = () => {
                             Gerencie todos os processos de prestação de contas
                         </p>
                     </div>
-                    <Link href="/processos/novo">
+                    <Link href="/processos-create">
                         <Button className="gap-2 bg-blue-600 hover:bg-blue-700 text-white">
                             <Plus className="h-4 w-4" />
                             Novo Processo
@@ -283,7 +285,7 @@ const ProcessList = () => {
                                             <TableCell className="text-right">
                                                 <div className="flex justify-end gap-2">
                                                     <Link
-                                                        href={`/processos/${process.id}`}
+                                                        href={`/processos-show/${process.id}`}
                                                     >
                                                         <Button
                                                             variant="outline"

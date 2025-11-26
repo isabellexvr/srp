@@ -171,7 +171,7 @@ const Dashboard = () => {
                             : "Visão geral dos processos de prestação de contas"}
                     </p>
                 </div>
-                <Link href="/processos/novo">
+                <Link href="/processos-create">
                     <Button className="gap-2 bg-blue-600 hover:bg-blue-700">
                         <Plus className="h-4 w-4" />
                         Novo Processo
@@ -300,7 +300,7 @@ const Dashboard = () => {
                                                 Completo
                                             </p>
                                         </div>
-                                        <Link href={`/processos/${process.id}`}>
+                                        <Link href={`/processos-show/${process.id}`}>
                                             <Button variant="outline" size="sm">
                                                 Visualizar
                                             </Button>

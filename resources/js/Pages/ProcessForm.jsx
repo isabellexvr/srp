@@ -44,7 +44,7 @@ const ProcessForm = () => {
     setLoading(true);
     setErrors({});
 
-    const url = action === 'checklist' ? '/processos/store-and-checklist' : '/processos';
+    const url = action === 'checklist' ? '/processos-store-and-checklist' : '/processos';
 
     router.post(url, formData, {
       onSuccess: (page) => {

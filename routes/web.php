@@ -22,15 +22,16 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
     Route::get('/processos', [ProcessController::class, 'index'])->name('processos.index');
-    Route::get('/processos/novo', [ProcessController::class, 'create'])->name('processos.create');
+    Route::get('/processos-create', [ProcessController::class, 'create'])->name('processos.create');
     Route::post('/processos', [ProcessController::class, 'store'])->name('processos.store');
-    Route::post('/processos/store-and-checklist', [ProcessController::class, 'storeAndChecklist']);
-    Route::delete('/processos/{process}', [ProcessController::class, 'destroy'])->name('processos.destroy');
+    Route::post('/processos-store-and-checklist', [ProcessController::class, 'storeAndChecklist']);
+    Route::delete('/processos-delete/{process}', [ProcessController::class, 'destroy'])->name('processos.destroy');
+    Route::get('/processos-show/{process}', [ChecklistController::class, 'show'])->name('checklist.show');
+    Route::put('/processos/{process}/checklist/{item}', [ChecklistController::class, 'updateItem']);
 
     Route::put('/progress-update/{process}', [ChecklistController::class, 'progressUpdate']);
-    Route::get('/processos/{process}/checklist', [ChecklistController::class, 'show'])->name('checklist.show');
-    Route::put('/processos/{process}/checklist/{item}', [ChecklistController::class, 'updateItem']);
 });
 
 require_once __DIR__ . '/api.php';
