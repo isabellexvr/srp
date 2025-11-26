@@ -103,7 +103,7 @@ const ProcessList = () => {
         return matchesSearch && matchesYear && matchesStatus;
     });
     
-    console.log(filteredProcesses)
+    console.log("debug ", filteredProcesses)
 
     return (
         <Layout>

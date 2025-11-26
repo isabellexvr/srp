@@ -27,10 +27,25 @@ class ChecklistController extends Controller
         $item = ChecklistItem::where('accountability_process_id', $processId)->findOrFail($itemId);
         $item->update($request->only(['status', 'sei_number', 'notes']));
         
+        // O progresso é atualizado automaticamente pelo evento no Model
+        
         return redirect()->back()->with('success', 'Item atualizado com sucesso');
     }
 
-    public function progressUpdate(Request $request, $processId)
+    public function bulkUpdate(Request $request, $processId)
+    {
+        $items = $request->input('items', []);
+        foreach ($items as $itemData) {
+            $item = ChecklistItem::where('accountability_process_id', $processId)->find($itemData['id']);
+            if ($item) {
+                $item->update($itemData);
+            }
+        }
+        
+        return redirect()->back()->with('success', 'Itens atualizados com sucesso');
+    }
+
+        public function progressUpdate(Request $request, $processId)
     {
         $items = $request->all();
         

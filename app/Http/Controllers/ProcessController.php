@@ -14,45 +14,50 @@ class ProcessController extends Controller
 {
     public function index(Request $request)
     {
-        $query = AccountabilityProcess::with('school');
-
+        $query = AccountabilityProcess::with(['school', 'checklistItems']);
+        
         // Filtros
         if ($request->has('search') && $request->search) {
-            $query->where(function ($q) use ($request) {
+            $query->where(function($q) use ($request) {
                 $q->where('process_number', 'like', "%{$request->search}%")
-                    ->orWhereHas('school', function ($q) use ($request) {
-                        $q->where('name', 'like', "%{$request->search}%");
-                    });
+                  ->orWhereHas('school', function($q) use ($request) {
+                      $q->where('name', 'like', "%{$request->search}%");
+                  });
             });
         }
-
+        
         if ($request->has('year') && $request->year !== 'all') {
             $query->where('year', $request->year);
         }
-
+        
         if ($request->has('status') && $request->status !== 'all') {
             $query->where('status', $request->status);
         }
-
+        
         // Filtra por escola se for school_admin
         if (Auth::user()->role === 'school_admin') {
             $query->where('school_id', Auth::user()->school_id);
         }
-
-        $processes = $query->orderBy('created_at', 'desc')->get();
+        
+        $processes = $query->orderBy('created_at', 'desc')->get()
+            ->map(function ($process) {
+                return [
+                    'id' => $process->id,
+                    'process_number' => $process->process_number,
+                    'school' => $process->school,
+                    'year' => $process->year,
+                    'semester' => $process->semester,
+                    'status' => $process->status,
+                    'progress' => $process->calculated_progress, // Usa o accessor
+                    'president_name' => $process->president_name,
+                    'treasurer_name' => $process->treasurer_name,
+                    'created_at' => $process->created_at,
+                ];
+            });
 
         return Inertia::render('ProcessList', [
             'processes' => $processes,
             'filters' => $request->only(['search', 'year', 'status'])
-        ]);
-    }
-
-    public function create()
-    {
-        $schools = School::all();
-
-        return Inertia::render('ProcessForm', [
-            'schools' => $schools
         ]);
     }
 
@@ -74,7 +79,7 @@ class ProcessController extends Controller
             'treasurer_name' => $request->treasurer_name,
             'process_number' => 'E:' . strtoupper(uniqid()) . '/' . $request->year,
             'status' => 'rascunho',
-            'created_by' => Auth::id(),
+            'progress' => 0, // Inicia com 0%
         ]);
 
         // Criar itens do checklist padrão
@@ -102,30 +107,14 @@ class ProcessController extends Controller
             'treasurer_name' => $request->treasurer_name,
             'process_number' => 'E:' . strtoupper(uniqid()) . '/' . $request->year,
             'status' => 'rascunho',
-            'created_by' => Auth::id(),
+            'progress' => 0,
         ]);
 
         // Criar itens do checklist padrão
         $this->createDefaultChecklistItems($process->id);
 
-        // Redirecionar para a página do checklist usando Inertia
         return redirect()->route('checklist.show', $process->id)
             ->with('success', 'Processo criado com sucesso!');
-    }
-
-    public function destroy($id)
-    {
-        $process = AccountabilityProcess::findOrFail($id);
-
-        // Verifica se o usuário tem permissão
-        if (Auth::user()->role === 'school_admin' && $process->school_id !== Auth::user()->school_id) {
-            abort(403);
-        }
-
-        $process->delete();
-
-        return redirect()->route('processos.index')
-            ->with('success', 'Processo excluído com sucesso!');
     }
 
     private function createDefaultChecklistItems($processId)
@@ -141,7 +130,6 @@ class ProcessController extends Controller
             ['item_number' => '8.2', 'description' => 'Extratos do Fundo de Investimento'],
             ['item_number' => '9', 'description' => 'Parecer do Conselho Fiscal'],
             ['item_number' => '10', 'description' => 'Demonstrativo de execução da receita e da despesa e dos pagamentos efetuados'],
-            // Adicione mais itens conforme necessário
         ];
 
         foreach ($defaultItems as $item) {
@@ -152,5 +140,14 @@ class ProcessController extends Controller
                 'status' => 'pending'
             ]);
         }
+    }
+
+        public function create()
+    {
+        $schools = School::all();
+
+        return Inertia::render('ProcessForm', [
+            'schools' => $schools
+        ]);
     }
 }
