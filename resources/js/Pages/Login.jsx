@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { router, usePage } from "@inertiajs/react";
+import { toast } from "react-toastify";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +13,7 @@ import {
 } from "@/components/ui/card";
 import { GraduationCap, Loader2 } from "lucide-react";
 import Layout from "@/Layouts/Layout";
+import FlashMessages from "@/components/FlashMessages";
 
 const Login = () => {
     const [formData, setFormData] = useState({
@@ -44,12 +46,14 @@ const Login = () => {
         setErrors({});
 
         router.post("/login", formData, {
-            onSuccess: () => {
+            onSuccess: (res) => {
                 setLoading(false);
-                // O Inertia automaticamente redireciona para a dashboard
+                console.log(res)
+
             },
             onError: (errors) => {
                 setErrors(errors);
+                
                 setLoading(false);
             },
             preserveState: true,
@@ -57,7 +61,8 @@ const Login = () => {
     };
 
     return (
-        <Layout>
+        <>
+            <FlashMessages />
             <div className="min-h-screen flex items-center justify-center bg-background px-4">
                 <div className="w-full max-w-md">
                     <div className="flex items-center justify-center mb-8">
@@ -176,7 +181,7 @@ const Login = () => {
                     </p>
                 </div>
             </div>
-        </Layout>
+        </>
     );
 };
 

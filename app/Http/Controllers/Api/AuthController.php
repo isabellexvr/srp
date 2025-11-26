@@ -17,20 +17,25 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
-            return redirect()->intended('/dashboard');
+            
+            // Adicione uma mensagem de sucesso
+            return redirect()->route('dashboard')
+                ->with('message', 'Login realizado com sucesso!');
         }
 
         return back()->withErrors([
-            'message' => 'Credenciais inválidas',
-            'email' => $request->email,
-        ]);
+            'email' => 'Credenciais inválidas',
+        ])->withInput($request->only('email'));
     }
+
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
-        return response()->json([
-            'message' => 'Logout realizado com sucesso'
-        ]);
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        
+        return redirect()->route('login.form')
+            ->with('message', 'Logout realizado com sucesso!');
     }
 
     public function showLoginForm()

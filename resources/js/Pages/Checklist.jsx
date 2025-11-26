@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import Layout from "@/Layouts/Layout";
 import FileUpload from "../components/FileUpload";
+import { toast } from "react-toastify";
 
 // Helper function for status badge
 const getStatusBadge = (status) => {
@@ -301,19 +302,16 @@ const Checklist = () => {
 
     const handleSave = async () => {
         setLoading(true);
-        const url = `/progress-update/${process.id}`;
-        console.log("Saving to URL:", url);
         try {
-            console.log("holy shit")
-            router.put(
-                url,
-                formData,
-                {
-                    preserveState: true,
-                }
-            );
+            await router.put(`/progress-update/${process.id}`, formData, {
+                preserveState: true,
+                onSuccess: () => toast.success("Progresso salvo com sucesso."),
+                onError: () =>
+                    toast.error("Não foi possível salvar o progresso."),
+            });
         } catch (error) {
             console.error("Erro ao salvar:", error);
+            toast.error("Erro inesperado ao salvar o progresso.");
         } finally {
             setLoading(false);
         }

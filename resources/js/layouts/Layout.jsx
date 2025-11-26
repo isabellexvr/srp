@@ -1,6 +1,7 @@
 // Layouts/Layout.jsx
 import { usePage } from '@inertiajs/react';
 import AppSidebar from '@/components/AppSidebar';
+import FlashMessages from '../components/FlashMessages';
 
 const Layout = ({ children }) => {
   const { url } = usePage();
@@ -17,6 +18,7 @@ const Layout = ({ children }) => {
       
       {/* Conteúdo Principal */}
       <div className="flex-1 flex flex-col min-w-0">
+      <FlashMessages />
         {/* Header */}
         <header className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-6 sticky top-0 z-10">
           <div>

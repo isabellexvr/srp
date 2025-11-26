@@ -1,23 +1,45 @@
-import './bootstrap';
-import { createInertiaApp } from '@inertiajs/react';
-import { createRoot } from 'react-dom/client';
-import "./app.css"
+import "./bootstrap";
+import { createInertiaApp } from "@inertiajs/react";
+import { createRoot } from "react-dom/client";
+import { ToastContainer } from "react-toastify";
+
+import "react-toastify/dist/ReactToastify.css";
+import "./app.css";
 
 createInertiaApp({
-  resolve: name => {
-    const pages = import.meta.glob('./Pages/**/*.jsx', { eager: true });
-    const key = `./Pages/${name}.jsx`;
-    const page = pages[key];
-    if (!page) {
-      console.error(`[Inertia] Página não encontrada: ${name}. Procurado em ${key}. Arquivos disponíveis:`, Object.keys(pages));
-      throw new Error(`Página Inertia "${name}" não encontrada.`);
-    }
-    return page;
-  },
-  setup({ el, App, props }) {
-    createRoot(el).render(<App {...props} />);
-  },
-  progress: {
-    color: '#4B5563',
-  },
+    resolve: (name) => {
+        const pages = import.meta.glob("./Pages/**/*.jsx", { eager: true });
+        const key = `./Pages/${name}.jsx`;
+        const page = pages[key];
+        if (!page) {
+            console.error(
+                `[Inertia] Página não encontrada: ${name}. Procurado em ${key}. Arquivos disponíveis:`,
+                Object.keys(pages)
+            );
+            throw new Error(`Página Inertia "${name}" não encontrada.`);
+        }
+        return page;
+    },
+    setup({ el, App, props }) {
+        createRoot(el).render(
+            <>
+                <App {...props} />
+
+                <ToastContainer
+                    position="top-right"
+                    autoClose={4000}
+                    hideProgressBar={false}
+                    newestOnTop
+                    closeOnClick
+                    pauseOnFocusLoss
+                    draggable
+                    pauseOnHover
+                    theme="colored"
+                />
+            </>
+        );
+    },
+    progress: {
+        color: "#4B5563",
+    },
 });

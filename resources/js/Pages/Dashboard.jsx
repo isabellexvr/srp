@@ -18,6 +18,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { useState, useEffect } from "react";
 import Layout from '@/Layouts/Layout'
+import FlashMessages from "../components/FlashMessages";
 
 
 const Dashboard = () => {
