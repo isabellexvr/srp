@@ -25,7 +25,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/escolas', [SchoolController::class, 'index'])->name('escolas.index');
+    Route::get('/escolas/create', [SchoolController::class, 'create'])->name('escolas.create');
+    Route::post('/escolas', [SchoolController::class, 'store'])->name('escolas.store');
     Route::get('/escolas/{school}', [SchoolController::class, 'show'])->name('escolas.show');
+    Route::delete('/escolas/{school}', [SchoolController::class, 'destroy'])->name('escolas.destroy');
 
     Route::get('/processos', [ProcessController::class, 'index'])->name('processos.index');
     Route::get('/processos-create', [ProcessController::class, 'create'])->name('processos.create');

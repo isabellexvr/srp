@@ -182,7 +182,7 @@ Seção 9: Parecer do Conselho Fiscal
 Barra de Progresso: 27/28 itens ✅
 Único pendente: [11] Demonstrativo consolidado
 
-Maria clica em [11]:
+Maria clica em [11]
 → Marca "NÃO SE APLICA" 
 → Justificativa: "Consolidado só necessário no final do ano"
 
